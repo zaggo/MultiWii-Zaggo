@@ -307,9 +307,9 @@ void setup() {
   // If throttle is in max position, start ESC calibration sequence
   if(rcData[THROTTLE]>MAXCHECK)
   {
-    writeAllMotors(2000);
+    writeAllMotors(MAXTHROTTLE);
     delay(3000);
-    writeAllMotors(1000);
+    writeAllMotors(900);
     delay(3000);
   }
   #endif
