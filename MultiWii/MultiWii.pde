@@ -296,6 +296,23 @@ void setup() {
     i2c_ETPP_set_cursor(0,0);LCDprintChar("MultiWii");
     i2c_ETPP_set_cursor(0,1);LCDprintChar("Ready to Fly!");
   #endif
+  
+  #ifdef CALIBRATE_ESCS
+  // Get current stick positions (loop to give code a chance to get running)
+  for(int i=0; i<10;i++) {
+    computeRC();
+    delay(20);
+  }
+  
+  // If throttle is in max position, start ESC calibration sequence
+  if(rcData[THROTTLE]>MAXCHECK)
+  {
+    writeAllMotors(2000);
+    delay(3000);
+    writeAllMotors(1000);
+    delay(3000);
+  }
+  #endif
 }
 
 // ******** Main Loop *********

@@ -36,6 +36,9 @@
 //enable internal I2C pull ups
 #define INTERNAL_I2C_PULLUPS
 
+// enable automatic ESC calibration code
+#define CALIBRATE_ESCS
+
 //****** advanced users settings   *************
 
 /* This option should be uncommented if ACC Z is accurate enough when motors are running*/
