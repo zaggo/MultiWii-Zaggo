@@ -27,17 +27,20 @@
 #define YAW_DIRECTION 1 // if you want to reverse the yaw correction direction
 //#define YAW_DIRECTION -1
 
-#define I2C_SPEED 100000L     //100kHz normal mode, this value must be used for a genuine WMP
-//#define I2C_SPEED 400000L   //400kHz fast mode, it works only with some WMP clones
+//#define I2C_SPEED 100000L     //100kHz normal mode, this value must be used for a genuine WMP
+#define I2C_SPEED 400000L   //400kHz fast mode, it works only with some WMP clones
 
-#define PROMINI  //Arduino type
-//#define MEGA
+//#define PROMINI  //Arduino type
+#define MEGA
 
 //enable internal I2C pull ups
 #define INTERNAL_I2C_PULLUPS
 
 // enable automatic ESC calibration code
 #define CALIBRATE_ESCS
+
+// 3/4 LED Array support
+#define BLINKEN
 
 //****** advanced users settings   *************
 
@@ -62,10 +65,11 @@
    note: only the RX PIN is used, the GPS is not configured by multiwii
    the GPS must be configured to output NMEA sentences (which is generally the default conf for most GPS devices)
 */
-//#define GPS
-//#define GPS_SERIAL Serial3 // should be Serial2 for flyduino v2
+#define GPS
+#define GPS_SERIAL Serial2 // should be Serial2 for flyduino v2
 //#define GPS_BAUD   4800
 //#define GPS_BAUD   9600
+#define GPS_BAUD   115200
 
 /* Pseudo-derivative conrtroller for level mode (experimental)
    Additional information: http://www.multiwii.com/forum/viewtopic.php?f=8&t=503 */
@@ -73,14 +77,14 @@
 
 /* introduce a deadband around the stick center
    Must be greater than zero, comment if you dont want a deadband on roll, pitch and yaw */
-//#define DEADBAND 6
+#define DEADBAND 6
 
 /* if you use a specific sensor board:
    please submit any correction to this list.
      Note from Alex: I only own some boards
                      for other boards, I'm not sure, the info was gathered via rc forums, be cautious */
 //#define FFIMUv1         // first 9DOF+baro board from Jussi, with HMC5843                   <- confirmed by Alex
-//#define FFIMUv2         // second version of 9DOF+baro board from Jussi, with HMC5883       <- confirmed by Alex
+#define FFIMUv2         // second version of 9DOF+baro board from Jussi, with HMC5883       <- confirmed by Alex
 //#define FREEIMUv1       // v0.1 & v0.2 & v0.3 version of 9DOF board from Fabio
 //#define FREEIMUv03      // FreeIMU v0.3 and v0.3.1
 //#define FREEIMUv035     // FreeIMU v0.3.5 no baro
@@ -151,7 +155,7 @@
    (Contribution by Danal)
 */
 //#define SPEKTRUM 1024
-//#define SPEKTRUM 2048
+#define SPEKTRUM 2048
 
 
 /* EXPERIMENTAL !!
@@ -197,7 +201,7 @@
    after the resistor divisor we should get [0V;5V]->[0;1023] on analog V_BATPIN
    with R1=33k and R2=51k
    vbat = [0;1023]*16/VBATSCALE */
-#define VBAT              // comment this line to suppress the vbat code
+//#define VBAT              // comment this line to suppress the vbat code
 #define VBATSCALE     131 // change this value if readed Battery voltage is different than real voltage
 #define VBATLEVEL1_3S 107 // 10,7V
 #define VBATLEVEL2_3S 103 // 10,3V
@@ -221,7 +225,7 @@
 
 /* In order to save space, it's possibile to desactivate the LCD configuration functions
    comment this line only if you don't plan to used a LCD */
-#define LCD_CONF
+//#define LCD_CONF
 
 /* To use an Eagle Tree Power Panel LCD for configuration, uncomment this line
  White wire  to Ground

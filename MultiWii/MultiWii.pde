@@ -129,17 +129,6 @@ static uint8_t yawRate;
 static uint8_t dynThrPID;
 static uint8_t activate[8];
 
-void blinkLED(uint8_t num, uint8_t wait,uint8_t repeat) {
-  uint8_t i,r;
-  for (r=0;r<repeat;r++) {
-    for(i=0;i<num;i++) {
-      LEDPIN_SWITCH //switch LEDPIN state
-      BUZZERPIN_ON delay(wait); BUZZERPIN_OFF
-    }
-    delay(60);
-  }
-}
-
 // **********************
 // GPS
 // **********************
@@ -150,6 +139,41 @@ static uint8_t  GPS_numSat;
 static uint16_t GPS_distanceToHome;
 static int16_t  GPS_directionToHome = 0;
 static uint8_t  GPS_update = 0;
+
+// ***********************
+// BLINKEN
+// ***********************
+#ifdef BLINKEN
+enum {
+  kBlinkenUnchanged,
+  kBlinkenDefault,
+  kBlinkenAllOn,
+  kBlinkenAllOff,
+  kBlinkenBackOnly,
+  kBlinkenPowerUpSequence,
+  kBlinkenCalibrationSequence,
+  kBlinkenBatWarning1,
+  kBlinkenBatWarning2,
+  kBlinkenBatWarning3,
+  kBlinkenFailSafe1,
+  kBlinkenFailSafe2,
+  kBlinkenGPSActive,
+  kBlinkenGPSNoFix
+};
+
+static uint8_t blinkenState = kBlinkenPowerUpSequence;
+#endif
+
+void blinkLED(uint8_t num, uint8_t wait,uint8_t repeat) {
+  uint8_t i,r;
+  for (r=0;r<repeat;r++) {
+    for(i=0;i<num;i++) {
+      LEDPIN_SWITCH //switch LEDPIN state
+      BUZZERPIN_ON delay(wait); BUZZERPIN_OFF
+    }
+    delay(60);
+  }
+}
 
 void annexCode() { //this code is excetuted at each loop and won't interfere with control loop if it lasts less than 650 microseconds
   static uint32_t serialTime;
@@ -227,15 +251,38 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
       } else if ( !buzzerState && (currentTime > (buzzerTime + (2000000>>buzzerFreq))) ) {
         buzzerState = 1;BUZZERPIN_ON;buzzerTime = currentTime;
       }
+    #if defined(BLINKEN)
+    switch(buzzerFreq)
+    {
+    case 1: 
+      blinkenState=kBlinkenBatWarning1; 
+      break;
+    case 2: 
+      blinkenState=kBlinkenBatWarning2; 
+      break;
+    case 4: 
+      blinkenState=kBlinkenBatWarning3; 
+      break;
+    }
+    #endif            
     }
   #endif
 
   if ( (calibratingA>0 && (ACC || nunchuk) ) || (calibratingG>0) ) {  // Calibration phasis
     LEDPIN_SWITCH
+#if defined(BLINKEN)
+      if(blinkenState!=kBlinkenPowerUpSequence) {
+        blinkenState = kBlinkenCalibrationSequence;
+      }
+#endif            
   } else {
     if (calibratedACC == 1) {LEDPIN_OFF}
     if (armed) {LEDPIN_ON}
   }
+
+#if defined(BLINKEN)
+  blinkenLoop();
+#endif
 
   if (abs(angle[ROLL])>180 || abs(angle[PITCH])>180) smallAngle18 = 0; else smallAngle18 = 1; //more than 18 deg detection
   if ( currentTime > calibratedAccTime ) {
@@ -297,6 +344,10 @@ void setup() {
     i2c_ETPP_set_cursor(0,1);LCDprintChar("Ready to Fly!");
   #endif
   
+  #if defined(BLINKEN)
+    BLINKEN_PINMODE
+  #endif
+
   #ifdef CALIBRATE_ESCS
   // Get current stick positions (loop to give code a chance to get running)
   for(int i=0; i<10;i++) {
@@ -344,15 +395,32 @@ void loop () {
       computeRC();
     #endif
     // Failsafe routine - added by MIS
-    #if defined(FAILSAFE)
-      if ( failsafeCnt > (5*FAILSAVE_DELAY) && armed==1) {                  // Stabilize, and set Throttle to specified level
-        for(i=0; i<3; i++) rcData[i] = MIDRC;                               // after specified guard time after RC signal is lost (in 0.1sec)
-        rcData[THROTTLE] = FAILSAVE_THR0TTLE;
-        if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY)) {          // Turn OFF motors after specified Time (in 0.1sec)
-          armed = 0;   //This will prevent the copter to automatically rearm if failsafe shuts it down and prevents
-          okToArm = 0; //to restart accidentely by just reconnect to the tx - you will have to switch off first to rearm
+    #if defined(BLINKEN)
+      if ( failsafeCnt > (5*FAILSAVE_DELAY))
+      {
+        #if defined(BLINKEN)
+          if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY))
+            blinkenState=kBlinkenFailSafe2;
+          else
+            blinkenState=kBlinkenFailSafe1;
+        #endif      
+        if(armed==1) {                  // Stabilize, and set Throttle to specified level
+          for(i=0; i<3; i++) rcData[i] = MIDRC;                               // after specified guard time after RC signal is lost (in 0.1sec)
+          rcData[THROTTLE] = FAILSAVE_THR0TTLE;
+          if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY)) {          // Turn OFF motors after specified Time (in 0.1sec)
+            armed = 0;   //This will prevent the copter to automatically rearm if failsafe shuts it down and prevents
+            okToArm = 0; //to restart accidentely by just reconnect to the tx - you will have to switch off first to rearm
+          }
+          failsafeEvents++;
         }
-        failsafeEvents++;
+      }
+      else
+      {
+      #if defined(BLINKEN)
+        if(blinkenState == kBlinkenFailSafe1 || blinkenState == kBlinkenFailSafe2 ) {
+          blinkenState=kBlinkenDefault;
+        }
+      #endif
       }
       failsafeCnt++;
     #endif
@@ -398,12 +466,24 @@ void loop () {
         rcDelayCommand++;
       } else if (rcData[PITCH] > MAXCHECK) {
          accTrim[PITCH]+=2;writeParams();
+         #if defined(BLINKEN)
+           blinkenTrimFront();
+         #endif
       } else if (rcData[PITCH] < MINCHECK) {
          accTrim[PITCH]-=2;writeParams();
+         #if defined(BLINKEN)
+           blinkenTrimBack();
+         #endif
       } else if (rcData[ROLL] > MAXCHECK) {
          accTrim[ROLL]+=2;writeParams();
+         #if defined(BLINKEN)
+           blinkenTrimRight();
+         #endif
       } else if (rcData[ROLL] < MINCHECK) {
          accTrim[ROLL]-=2;writeParams();
+         #if defined(BLINKEN)
+           blinkenTrimLeft();
+         #endif
       } else {
         rcDelayCommand = 0;
       }
@@ -548,6 +628,15 @@ void loop () {
 
   //GPS
   #if defined(GPS)
+  #if defined(BLINKEN)
+    if(GPSModeHold || GPSModeHome)
+    {
+      if(GPS_fix)
+        blinkenState = kBlinkenGPSActive; 
+      else
+        blinkenState = kBlinkenGPSNoFix; 
+    }
+  #endif
     while (GPS_SERIAL.available()) {
       if (GPS_newFrame(GPS_SERIAL.read())) {
         if (GPS_update == 1) GPS_update = 0; else GPS_update = 1;
