@@ -85,7 +85,7 @@ int cycleTime;
 CheckBox checkbox[] = new CheckBox[8];
 int activation[] = new int[8];
 
-PFont font8,font12,font15;
+PFont font8,font10,font12,font15;
 
 // coded by Eberhard Rensch
 // Truncates a long port name for better (readable) display in the GUI
@@ -108,7 +108,8 @@ void setup() {
   size(windowsX,windowsY,OPENGL);
   frameRate(20); 
   
-  font8 = createFont("Arial bold",8,false);font12 = createFont("Arial bold",12,false);font15 = createFont("Arial bold",15,false);
+  font8 = createFont("Helvetica bold",8,false);font10 = createFont("Helvetica bold",10,false);
+  font12 = createFont("Helvetica bold",12,false);font15 = createFont("Helvetica bold",15,false);
 
   controlP5 = new ControlP5(this); // initialize the GUI controls
   controlP5.setControlFont(font12);
@@ -438,15 +439,15 @@ void draw() {
   pushMatrix();
   translate(xObj+60,yObj-165);
   rotate(a);
-  textFont(font15);text("ROLL", -20, 15);
+  textFont(font10);text(String.format("ROLL: %03.0f°", angx), -25, 15);
   line(-30,0,+30,0);line(0,0,0,-10);
   popMatrix();
   
   pushMatrix();
   translate(xObj+60,yObj-100);
   rotate(b);
-  textFont(font15);text("PITCH", -30, 15);
-  line(-30,0,30,0);line(+30,0,30-size/3 ,size/3);line(+30,0,30-size/3 ,-size/3);  
+  textFont(font10);text(String.format("PITCH: %03.0f°", angy), -30, 15);
+  line(-30,0,31,0);line(+30,0,30-size/6 ,size/6);line(+30,0,30-size/6 ,-size/6);  
   popMatrix();
  
   pushMatrix();
@@ -472,9 +473,12 @@ void draw() {
   rotate(head*PI/180);
   line(0,size, 0,-size); line(0,-size, -5 ,-size+10); line(0,-size, +5 ,-size+10);
   popMatrix();
+  textFont(font15);
   text("N",xObj-25,yObj-155);text("S",xObj-25,yObj-100);
   text("W",xObj-53,yObj-127);text("E",xObj   ,yObj-127);
-
+  fill(255);
+  textFont(font10); text(String.format("%03.0f°", head),xObj-30,yObj-80);
+  
   strokeWeight(1);
   fill(255, 255, 255);
   g_graph.drawGraphBox();
