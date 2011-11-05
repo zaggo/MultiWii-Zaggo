@@ -1,4 +1,4 @@
-volatile uint16_t rcValue[8] = {1502,1502,1502,1502,1502,1502,1502,1502}; // interval [1000;2000]
+volatile uint16_t rcValue[18] = {1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502}; // interval [1000;2000]
 
 #if defined(SERIAL_SUM_PPM)
   static uint8_t rcChannel[8] = {SERIAL_SUM_PPM};
@@ -237,6 +237,9 @@ void  readSBus(){
 
 uint16_t readRawRC(uint8_t chan) {
   uint16_t data;
+#if defined(SBUS)
+  data = rcValue[rcChannel[chan]]; // Let's copy the data Atomically
+#else
   uint8_t oldSREG;
   oldSREG = SREG; cli(); // Let's disable interrupts
   data = rcValue[rcChannel[chan]]; // Let's copy the data Atomically
@@ -264,6 +267,7 @@ uint16_t readRawRC(uint8_t chan) {
       #endif
     }
   #endif
+#endif
   return data; // We return the value correctly copied when the IRQ's where disabled
 }
   
