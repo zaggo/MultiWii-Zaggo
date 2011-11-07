@@ -1,7 +1,7 @@
 /*
 MultiWiiCopter by Alexandre Dubus
 www.multiwii.com
-October  2011     V1.dev
+November  2011     V1.9
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -110,7 +110,7 @@ static int16_t gyroZero[3] = {0,0,0};
 static int16_t accZero[3]  = {0,0,0};
 static int16_t magZero[3]  = {0,0,0};
 static int16_t angle[2]    = {0,0};  // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
-static int8_t  smallAngle18;
+static int8_t  smallAngle25;
 
 // *************************
 // motor and servo functions
@@ -168,8 +168,10 @@ void blinkLED(uint8_t num, uint8_t wait,uint8_t repeat) {
   uint8_t i,r;
   for (r=0;r<repeat;r++) {
     for(i=0;i<num;i++) {
-      LEDPIN_SWITCH //switch LEDPIN state
-      BUZZERPIN_ON delay(wait); BUZZERPIN_OFF
+      LEDPIN_TOGGLE; //switch LEDPIN state
+      BUZZERPIN_ON;
+      delay(wait);
+      BUZZERPIN_OFF;
     }
     delay(60);
   }
@@ -247,9 +249,13 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
     else                           buzzerFreq = 4;
     if (buzzerFreq) {
       if (buzzerState && (currentTime > buzzerTime + 250000) ) {
-        buzzerState = 0;BUZZERPIN_OFF;buzzerTime = currentTime;
+        buzzerState = 0;
+        BUZZERPIN_OFF;
+        buzzerTime = currentTime;
       } else if ( !buzzerState && (currentTime > (buzzerTime + (2000000>>buzzerFreq))) ) {
-        buzzerState = 1;BUZZERPIN_ON;buzzerTime = currentTime;
+        buzzerState = 1;
+        BUZZERPIN_ON;
+        buzzerTime = currentTime;
       }
     #if defined(BLINKEN)
     switch(buzzerFreq)
@@ -264,31 +270,27 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
       blinkenState=kBlinkenBatWarning3; 
       break;
     }
-    #endif            
+  #endif
     }
   #endif
 
   if ( (calibratingA>0 && (ACC || nunchuk) ) || (calibratingG>0) ) {  // Calibration phasis
-    LEDPIN_SWITCH
+    LEDPIN_TOGGLE;
 #if defined(BLINKEN)
       if(blinkenState!=kBlinkenPowerUpSequence) {
         blinkenState = kBlinkenCalibrationSequence;
       }
 #endif            
   } else {
-    if (calibratedACC == 1) {LEDPIN_OFF}
-    if (armed) {LEDPIN_ON}
+    if (calibratedACC == 1) {LEDPIN_OFF;}
+    if (armed) {LEDPIN_ON;}
   }
 
-#if defined(BLINKEN)
-  blinkenLoop();
-#endif
 
-  if (abs(angle[ROLL])>180 || abs(angle[PITCH])>180) smallAngle18 = 0; else smallAngle18 = 1; //more than 18 deg detection
   if ( currentTime > calibratedAccTime ) {
-    if (smallAngle18 == 0) {
+    if (smallAngle25 == 0) {
       calibratedACC = 0; //the multi uses ACC and is not calibrated or is too much inclinated
-      LEDPIN_SWITCH
+      LEDPIN_TOGGLE;
       calibratedAccTime = currentTime + 500000;
     } else
       calibratedACC = 1;
@@ -316,18 +318,18 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
 
 void setup() {
   Serial.begin(SERIAL_COM_SPEED);
-  LEDPIN_PINMODE
-  POWERPIN_PINMODE
-  BUZZERPIN_PINMODE
-  STABLEPIN_PINMODE
-  POWERPIN_OFF  
+  LEDPIN_PINMODE;
+  POWERPIN_PINMODE;
+  BUZZERPIN_PINMODE;
+  STABLEPIN_PINMODE;
+  POWERPIN_OFF;
   initOutput();
   readEEPROM();
   checkFirstTime();
   configureReceiver();
   initSensors();
   previousTime = micros();
-  #if defined(GIMBAL) || defined(FLYING_WING)
+  #if defined(GIMBAL)
    calibratingA = 400;
   #endif
   calibratingG = 400;
@@ -353,8 +355,8 @@ void setup() {
   for(int i=0; i<10;i++) {
     computeRC();
     delay(20);
-  }
-  
+}
+
   // If throttle is in max position, start ESC calibration sequence
   if(rcData[THROTTLE]>MAXCHECK)
   {
@@ -391,7 +393,7 @@ void loop () {
   
   if (currentTime > rcTime ) { // 50Hz
     rcTime = currentTime + 20000;
-    #if !defined(SPEKTRUM)
+    #if !(defined(SPEKTRUM) || defined(BTSERIAL))
       computeRC();
     #endif
     // Failsafe routine - added by MIS
@@ -405,14 +407,14 @@ void loop () {
             blinkenState=kBlinkenFailSafe1;
         #endif      
         if(armed==1) {                  // Stabilize, and set Throttle to specified level
-          for(i=0; i<3; i++) rcData[i] = MIDRC;                               // after specified guard time after RC signal is lost (in 0.1sec)
-          rcData[THROTTLE] = FAILSAVE_THR0TTLE;
-          if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY)) {          // Turn OFF motors after specified Time (in 0.1sec)
-            armed = 0;   //This will prevent the copter to automatically rearm if failsafe shuts it down and prevents
-            okToArm = 0; //to restart accidentely by just reconnect to the tx - you will have to switch off first to rearm
-          }
-          failsafeEvents++;
+        for(i=0; i<3; i++) rcData[i] = MIDRC;                               // after specified guard time after RC signal is lost (in 0.1sec)
+        rcData[THROTTLE] = FAILSAVE_THR0TTLE;
+        if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY)) {          // Turn OFF motors after specified Time (in 0.1sec)
+          armed = 0;   //This will prevent the copter to automatically rearm if failsafe shuts it down and prevents
+          okToArm = 0; //to restart accidentely by just reconnect to the tx - you will have to switch off first to rearm
         }
+        failsafeEvents++;
+      }
       }
       else
       {
@@ -551,7 +553,7 @@ void loop () {
       int16_t dif = heading - magHold;
       if (dif <= - 180) dif += 360;
       if (dif >= + 180) dif -= 360;
-      if ( smallAngle18 ) rcCommand[YAW] -= dif*P8[PIDMAG]/30;  //18 deg
+      if ( smallAngle25 ) rcCommand[YAW] -= dif*P8[PIDMAG]/30;  //18 deg
     } else magHold = heading;
   }
 
