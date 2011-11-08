@@ -13,8 +13,8 @@
 //#define GIMBAL
 //#define BI
 //#define TRI
-//#define QUADP
-#define QUADX
+#define QUADP
+//#define QUADX
 //#define Y4
 //#define Y6
 //#define HEX6
@@ -31,8 +31,13 @@
 #define I2C_SPEED 400000L   //400kHz fast mode, it works only with some WMP clones
 
 //enable internal I2C pull ups
-#define INTERNAL_I2C_PULLUPS
+//#define INTERNAL_I2C_PULLUPS
 
+// enable automatic ESC calibration code
+#define CALIBRATE_ESCS
+
+// 3/4 LED Array support
+#define BLINKEN
 
 //****** advanced users settings   *************
 

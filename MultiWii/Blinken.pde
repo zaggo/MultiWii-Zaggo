@@ -1,10 +1,7 @@
 /*
  * This code drives 3 or 4 LED (Arrays)
  */
- 
 #ifdef BLINKEN
-#include "config.h"
-#include "def.h"
 
 // Light States
 static uint32_t blinkenBackToDefault = 0;
@@ -125,7 +122,7 @@ void blinkenTrimBack()
       BLINKEN3_ON
       BLINKEN4_ON
     #else
-      BLINKEN4_ON
+      BLINKEN3_ON
     #endif
     blinkenBackToDefault = currentTime+750000;
 }
@@ -135,7 +132,6 @@ void blinkenPowerUpSequence()
   static uint32_t blinkenPowerUpTime=0;
   static uint8_t  blinkenPowerUpPhase=0;  
   static uint8_t  blinkenPowerUpLoop=0;
-
   if(currentTime>blinkenPowerUpTime)
   {
     blinkenPowerUpTime=currentTime+100000;

@@ -286,6 +286,9 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
     if (armed) {LEDPIN_ON;}
   }
 
+#if defined(BLINKEN)
+  blinkenLoop();
+#endif
 
   if ( currentTime > calibratedAccTime ) {
     if (smallAngle25 == 0) {

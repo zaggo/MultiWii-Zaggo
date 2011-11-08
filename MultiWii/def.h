@@ -378,8 +378,6 @@
   #define MULTITYPE 11      //the GUI is the same for all 8 motor configs
 #endif
 
-
-
 // Blinken will use 3 (Tri) or 4 (Quad) LED (Arrays) 
 #ifdef BLINKEN
   #ifndef MEGA
@@ -387,9 +385,9 @@
   #endif
   
   #if defined(TRI)
-    // undef the default pin defines
+    // un-/redef the default pin defines
     #define LEDPIN_PINMODE             pinMode (13, OUTPUT);
-    #define LEDPIN_SWITCH              PINB  |= (1<<7);
+    #define LEDPIN_TOGGLE              PINB  |= (1<<7);
     #define LEDPIN_ON                  PORTB |= (1<<7);
     #define LEDPIN_OFF                 PORTB &= ~(1<<7);
     #define BUZZERPIN_PINMODE          pinMode (30, OUTPUT);
@@ -420,33 +418,10 @@
     #define BLINKEN_ALL_BUT_3      PORTC |= 0b00110000; PORTC &= 0b10111111;
     #define BLINKEN_ALL_BUT_4      ;
     #define BLINKEN_COUNT          3
-  #elif (defined(QUADP) || defined(QUADX))
-   #if defined(SBUS)
-    #define BLINKEN_PINMODE        DDRK = 0;pinMode (62, OUTPUT);pinMode (63, OUTPUT);pinMode(64,OUTPUT);pinMode(65,OUTPUT);
-    #define BLINKEN1_ON            PORTK |= 1<<0;  
-    #define BLINKEN1_OFF           PORTK &= ~(1<<0);
-    #define BLINKEN2_ON            PORTK |= 1<<1;  
-    #define BLINKEN2_OFF           PORTK &= ~(1<<1);
-    #define BLINKEN3_ON            PORTK |= 1<<2;  
-    #define BLINKEN3_OFF           PORTK &= ~(1<<2);
-    #define BLINKEN4_ON            PORTK |= 1<<3;  
-    #define BLINKEN4_OFF           PORTK &= ~(1<<3);
-    #define BLINKEN_ALL_ON         PORTK |= 0b00001111;
-    #define BLINKEN_ALL_OFF        PORTK &= 0b11110000;
-    #if defined(QUADP)
-      #define BLINKEN_BACK_ONLY      PORTK |= 0b00000001; PORTK &= 0b11110001;
-    #else
-      #define BLINKEN_BACK_ONLY      PORTK |= 0b00000011; PORTK &= 0b11110011;
-    #endif
-    #define BLINKEN_ALL_BUT_1      PORTK |= 0b00001110; PORTK &= 0b11111110;
-    #define BLINKEN_ALL_BUT_2      PORTK |= 0b00001101; PORTK &= 0b11111101;
-    #define BLINKEN_ALL_BUT_3      PORTK |= 0b00001011; PORTK &= 0b11111011;
-    #define BLINKEN_ALL_BUT_4      PORTK |= 0b00000111; PORTK &= 0b11110111;
-    #define BLINKEN_COUNT          4
-   #else
-   // undef the default pin defines
+  #elif (defined(QUADP) || defined(QUADX))   
+    // un-/redef the default pin defines
     #define LEDPIN_PINMODE             pinMode (13, OUTPUT);
-    #define LEDPIN_SWITCH              PINB  |= (1<<7);
+    #define LEDPIN_TOGGLE              PINB  |= (1<<7);
     #define LEDPIN_ON                  PORTB |= (1<<7);
     #define LEDPIN_OFF                 PORTB &= ~(1<<7);
     #define BUZZERPIN_PINMODE          ;
@@ -480,8 +455,10 @@
     #define BLINKEN_ALL_BUT_2      PORTC |= 0b11010000; PORTC &= 0b11011111;
     #define BLINKEN_ALL_BUT_3      PORTC |= 0b10110000; PORTC &= 0b10111111;
     #define BLINKEN_ALL_BUT_4      PORTC |= 0b01110000; PORTC &= 0b01111111;
-    #define BLINKEN_COUNT          4   
-   #endif
+    #define BLINKEN_COUNT          4
+  #else
+    #warning "BLINKEN pins for this copter configuration aren't defined yet (only TRI, QUADX & QUADP). See def.h"
+    #undef BLINKEN
   #endif
 #endif
 
