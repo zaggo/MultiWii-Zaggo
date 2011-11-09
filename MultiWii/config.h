@@ -36,7 +36,15 @@
 // enable automatic ESC calibration code
 #define CALIBRATE_ESCS
 
-// 3/4 LED Array support
+// BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
+// Use the copter's LEDs (usually LED strips attached to the arms) as status display
+// This option currently supports TRI, QUADX and QUADP configurations. 
+// Connect 3 (TRI) or 4 (QUADX/QUADP) LED (Strips) with help of a driver chip (e.g. UDN2981A) to the
+// flight controller.
+// For TRI configuration, use pins 31 (left), 32 (right) and 33 (back). Buzzer pin stays pin 30.
+// For QUADP configuration, use pins 30 (front), 31 (right), 32 (back) and 33 (left). Buzzer pin is re-assigned to digital pin 8
+// For QUADX configuration, ise üins 30 (left front), 31 (right front), 32 (right back), 33 (left back). Buzzer pin is re-assigned to digital pin 8
+// See def.h for more details.
 #define BLINKEN
 
 //****** advanced users settings   *************

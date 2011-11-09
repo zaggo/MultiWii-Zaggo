@@ -94,7 +94,7 @@ static uint8_t telemetry_auto = 0;
 #define MAXCHECK 1900
 
 volatile int16_t failsafeCnt = 0;
-static int16_t failsafeEvents = 0;
+//static int16_t failsafeEvents = 0;
 static int16_t rcData[8];    // interval [1000;2000]
 static int16_t rcCommand[4]; // interval [1000;2000] for THROTTLE and [-500;+500] for ROLL/PITCH/YAW 
 static uint8_t rcRate8;
@@ -144,24 +144,39 @@ static uint8_t  GPS_update = 0;
 // BLINKEN
 // ***********************
 #ifdef BLINKEN
+
+// The available Blinkenstates
+// IMPORTANT: This enum is sorted by importance of the state!
+// The designated function to set the blinkenState ensures, that
+// a less important state cannot overwrite a more important state.
+// E.g. GPSActive never should overwrite a BatWarning and a BatWarnig
+// never should overwrite a FailSafe situation
 enum {
   kBlinkenUnchanged,
   kBlinkenDefault,
   kBlinkenAllOn,
   kBlinkenAllOff,
   kBlinkenBackOnly,
-  kBlinkenPowerUpSequence,
+  kBlinkenGPSActive,
+  kBlinkenGPSNoFix,
   kBlinkenCalibrationSequence,
   kBlinkenBatWarning1,
   kBlinkenBatWarning2,
   kBlinkenBatWarning3,
   kBlinkenFailSafe1,
   kBlinkenFailSafe2,
-  kBlinkenGPSActive,
-  kBlinkenGPSNoFix
+  kBlinkenPowerUpSequence  // Well, not that important, but PowerUp should always happen on ground anyway...
 };
 
 static uint8_t blinkenState = kBlinkenPowerUpSequence;
+
+#define blinkenState(x) setBlinkenState(x)
+
+#else
+
+// In case BLINKEN is not defined, remove all calls to blinkenState from code. This saves us a lot #ifdef BLINKEN statements in this file
+#define blinkenState(x) {}
+
 #endif
 
 void blinkLED(uint8_t num, uint8_t wait,uint8_t repeat) {
@@ -243,10 +258,19 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
     #if defined(POWERMETER)
     } else if (pMeter[PMOTOR_SUM] > pAlarm) {                             // sound alarm for powermeter
       buzzerFreq = 4;
+      blinkenState(kBlinkenBatWarning3);
     #endif
-    } else if (vbat>VBATLEVEL2_3S) buzzerFreq = 1;
-    else if (vbat>VBATLEVEL3_3S)   buzzerFreq = 2;
-    else                           buzzerFreq = 4;
+    } else if (vbat>VBATLEVEL2_3S) {
+      buzzerFreq = 1;
+      blinkenState(kBlinkenBatWarning1);
+    } else if (vbat>VBATLEVEL3_3S) {  
+      buzzerFreq = 2;
+      blinkenState(kBlinkenBatWarning2);
+    }
+    else {
+      buzzerFreq = 4;
+      blinkenState(kBlinkenBatWarning3);
+    }
     if (buzzerFreq) {
       if (buzzerState && (currentTime > buzzerTime + 250000) ) {
         buzzerState = 0;
@@ -257,38 +281,16 @@ void annexCode() { //this code is excetuted at each loop and won't interfere wit
         BUZZERPIN_ON;
         buzzerTime = currentTime;
       }
-    #if defined(BLINKEN)
-    switch(buzzerFreq)
-    {
-    case 1: 
-      blinkenState=kBlinkenBatWarning1; 
-      break;
-    case 2: 
-      blinkenState=kBlinkenBatWarning2; 
-      break;
-    case 4: 
-      blinkenState=kBlinkenBatWarning3; 
-      break;
-    }
-  #endif
-    }
+  }
   #endif
 
   if ( (calibratingA>0 && (ACC || nunchuk) ) || (calibratingG>0) ) {  // Calibration phasis
     LEDPIN_TOGGLE;
-#if defined(BLINKEN)
-      if(blinkenState!=kBlinkenPowerUpSequence) {
-        blinkenState = kBlinkenCalibrationSequence;
-      }
-#endif            
+    blinkenState(kBlinkenCalibrationSequence);
   } else {
     if (calibratedACC == 1) {LEDPIN_OFF;}
     if (armed) {LEDPIN_ON;}
   }
-
-#if defined(BLINKEN)
-  blinkenLoop();
-#endif
 
   if ( currentTime > calibratedAccTime ) {
     if (smallAngle25 == 0) {
@@ -348,7 +350,7 @@ void setup() {
     i2c_ETPP_set_cursor(0,0);LCDprintChar("MultiWii");
     i2c_ETPP_set_cursor(0,1);LCDprintChar("Ready to Fly!");
   #endif
-  
+      
   #if defined(BLINKEN)
     BLINKEN_PINMODE
   #endif
@@ -358,7 +360,7 @@ void setup() {
   for(int i=0; i<10;i++) {
     computeRC();
     delay(20);
-}
+  }
 
   // If throttle is in max position, start ESC calibration sequence
   if(rcData[THROTTLE]>MAXCHECK)
@@ -396,40 +398,37 @@ void loop () {
   
   if (currentTime > rcTime ) { // 50Hz
     rcTime = currentTime + 20000;
+     
+    #if defined(BLINKEN)
+      handleBlinkenState(); // Handles and resets the blinkenState
+    #endif
+
     #if !(defined(SPEKTRUM) || defined(BTSERIAL))
       computeRC();
     #endif
+    
     // Failsafe routine - added by MIS
-    #if defined(BLINKEN)
+    #if defined(FAILSAFE)
       if ( failsafeCnt > (5*FAILSAVE_DELAY))
       {
-        #if defined(BLINKEN)
-          if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY))
-            blinkenState=kBlinkenFailSafe2;
-          else
-            blinkenState=kBlinkenFailSafe1;
-        #endif      
-        if(armed==1) {                  // Stabilize, and set Throttle to specified level
-        for(i=0; i<3; i++) rcData[i] = MIDRC;                               // after specified guard time after RC signal is lost (in 0.1sec)
+        blinkenState(kBlinkenFailSafe1);         
+ 
+        // reset the rcData armed or not armed (Zaggo 9. Nov 2011)
+        for(i=0; i<3; i++) 
+         rcData[i] = MIDRC;                               // after specified guard time after RC signal is lost (in 0.1sec)
         rcData[THROTTLE] = FAILSAVE_THR0TTLE;
-        if (failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY)) {          // Turn OFF motors after specified Time (in 0.1sec)
-          armed = 0;   //This will prevent the copter to automatically rearm if failsafe shuts it down and prevents
-          okToArm = 0; //to restart accidentely by just reconnect to the tx - you will have to switch off first to rearm
+        
+        if(armed==1 && failsafeCnt > 5*(FAILSAVE_DELAY+FAILSAVE_OFF_DELAY)) {          // Turn OFF motors after specified Time (in 0.1sec)
+            armed = 0;   //This will prevent the copter to automatically rearm if failsafe shuts it down and prevents
+            okToArm = 0; //to restart accidentely by just reconnect to the tx - you will have to switch off first to rearm
+            blinkenState(kBlinkenFailSafe2);         
         }
-        failsafeEvents++;
-      }
-      }
-      else
-      {
-      #if defined(BLINKEN)
-        if(blinkenState == kBlinkenFailSafe1 || blinkenState == kBlinkenFailSafe2 ) {
-          blinkenState=kBlinkenDefault;
-        }
-      #endif
+          //failsafeEvents++; 
       }
       failsafeCnt++;
     #endif
     // end of failsave routine - next change is made with RcOptions setting
+    
     if (rcData[THROTTLE] < MINCHECK) {
       errorGyroI[ROLL] = 0; errorGyroI[PITCH] = 0; errorGyroI[YAW] = 0;
       errorAngleI[ROLL] = 0; errorAngleI[PITCH] = 0;
@@ -633,15 +632,10 @@ void loop () {
 
   //GPS
   #if defined(GPS)
-  #if defined(BLINKEN)
+   #if defined(BLINKEN)
     if(GPSModeHold || GPSModeHome)
-    {
-      if(GPS_fix)
-        blinkenState = kBlinkenGPSActive; 
-      else
-        blinkenState = kBlinkenGPSNoFix; 
-    }
-  #endif
+      blinkenState( GPS_fix?kBlinkenGPSActive:kBlinkenGPSNoFix ); 
+   #endif
     while (GPS_SERIAL.available()) {
       if (GPS_newFrame(GPS_SERIAL.read())) {
         if (GPS_update == 1) GPS_update = 0; else GPS_update = 1;

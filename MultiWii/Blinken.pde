@@ -1,21 +1,76 @@
-/*
- * This code drives 3 or 4 LED (Arrays)
- */
+// BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
+// Use the copter's LEDs (usually LED strips attached to the arms) as status display
+// This option currently supports TRI, QUADX and QUADP configurations. 
+// Connect 3 (TRI) or 4 (QUADX/QUADP) LED (Strips) with help of a driver chip (e.g. UDN2981A) to the
+// flight controller.
+// For TRI configuration, use pins 31 (left), 32 (right) and 33 (back). Buzzer pin stays pin 30.
+// For QUADP configuration, use pins 30 (front), 31 (right), 32 (back) and 33 (left). Buzzer pin is re-assigned to digital pin 8
+// For QUADX configuration, ise üins 30 (left front), 31 (right front), 32 (right back), 33 (left back). Buzzer pin is re-assigned to digital pin 8
+// See def.h for more details.
+
 #ifdef BLINKEN
 
-// Light States
+//////////////////////////
+// Verbose, Log and Trace
+// For development only!
+/////////////////////////
+
+//#define VERBOSE
+
+#ifdef VERBOSE
+  static uint32_t lastBlinkenState = 0;
+  static char kStateName [kBlinkenPowerUpSequence+1][40] = {
+    "kBlinkenUnchanged ",
+    "kBlinkenDefault ",
+    "kBlinkenAllOn ",
+    "kBlinkenAllOff ",
+    "kBlinkenBackOnly ",
+    "kBlinkenGPSActive ",
+    "kBlinkenGPSNoFix ",
+    "kBlinkenCalibrationSequence ",
+    "kBlinkenBatWarning1 ",
+    "kBlinkenBatWarning2 ",
+    "kBlinkenBatWarning3 ",
+    "kBlinkenFailSafe1 ",
+    "kBlinkenFailSafe2 ",
+    "kBlinkenPowerUpSequence "
+  };
+
+  #define LOGBLINKENSTATE if(lastBlinkenState!=blinkenState) { lastBlinkenState = blinkenState; Serial.print("Blinken: "); if(blinkenState>=0 && blinkenState<=kBlinkenPowerUpSequence) Serial.print(kStateName[blinkenState]); Serial.println(blinkenState, DEC); }
+  #define TRACEBLINKEN(x) Serial.print("Blinken: "); Serial.println(x); 
+#else
+  #define LOGBLINKENSTATE
+  #define TRACEBLINKEN(x)
+#endif
+
+//////////////////////////////////
+// End Verbose, Log and Trace
+//////////////////////////////////
+
 static uint32_t blinkenBackToDefault = 0;
 
-void blinkenLoop()
+void setBlinkenState(uint16_t state)
+{
+    // This function only escalates the blinkenState
+    // A less important state cannot overwrite a more important state!
+    if(state>blinkenState)
+      blinkenState = state;
+}
+
+void handleBlinkenState()
 {
   if(blinkenBackToDefault>0)
   {
     if(currentTime>blinkenBackToDefault)
     {
       blinkenBackToDefault = 0;
-      blinkenState = kBlinkenDefault;
+      setBlinkenState(kBlinkenDefault);
+      TRACEBLINKEN("backToDefault");
     }
   }
+  
+  LOGBLINKENSTATE;
+  
   switch(blinkenState)
   {
     case kBlinkenDefault: 
@@ -35,10 +90,11 @@ void blinkenLoop()
       blinkenState=kBlinkenUnchanged; 
       break;
     case kBlinkenPowerUpSequence: 
-      blinkenPowerUpSequence(); 
+      blinkenPowerUpSequence(); // This is a special case. Reset to kBlinkenDefault inside blinkenPowerUpSequence when ready.
       break;
     case kBlinkenCalibrationSequence: 
       blinkenRotate(); 
+      blinkenState=kBlinkenDefault; 
       break;
     case kBlinkenBatWarning1: 
       blinkenBatWarn(1); 
@@ -49,14 +105,16 @@ void blinkenLoop()
       blinkenState=kBlinkenDefault; 
       break;
     case kBlinkenBatWarning3: 
-      blinkenBatWarn(4); 
+      blinkenBatWarn(3); 
       blinkenState=kBlinkenDefault; 
       break;
     case kBlinkenFailSafe1: 
       blinkenFailsafe1();
+      blinkenState=kBlinkenDefault; 
       break;
     case kBlinkenFailSafe2: 
-      blinkenBatWarn(4);
+      blinkenBatWarn(3);
+      blinkenState=kBlinkenDefault; 
       break;
     case kBlinkenGPSActive:
       blinkenRotate();
@@ -287,6 +345,7 @@ void blinkenFailsafe1()
   static uint8_t blinkenPhase=0;  
   static uint8_t blinkenLoop=0;
   
+  // Blink SOS
   if(currentTime>blinkenTime)
   {
     switch(blinkenPhase++)
@@ -325,14 +384,14 @@ void blinkenFailsafe1()
   }
 }
 
-void blinkenBatWarn(int buzzerFreq)
+void blinkenBatWarn(int warningStage)
 {
   static uint32_t blinkenTime=0;
   static uint8_t blinkenWarnOn=0;
 
   uint32_t flashOnTime=0;
   uint32_t flashOffTime=0;
-  switch(buzzerFreq)
+  switch(warningStage)
   {
   case 1:
     flashOnTime=1000000;
@@ -342,7 +401,7 @@ void blinkenBatWarn(int buzzerFreq)
     flashOnTime= 400000;
     flashOffTime=400000;    
     break;
-  case 4:
+  case 3:
     flashOnTime= 150000;
     flashOffTime=150000;    
     break;

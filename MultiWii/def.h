@@ -108,7 +108,7 @@
   #define CAM1PIN                    6  //PIN 68 =  PIN A14
   #define CAM2PIN                    7  //PIN 69 =  PIN A15
   #define ISR_UART                   ISR(USART0_UDRE_vect)
-  #define V_BATPIN                   A0    // Analog PIN 3
+  #define V_BATPIN                   A0    // Analog PIN 0
   #define PSENSORPIN                 A2    // Analog PIN 2
 #endif
 
@@ -424,9 +424,9 @@
     #define LEDPIN_TOGGLE              PINB  |= (1<<7);
     #define LEDPIN_ON                  PORTB |= (1<<7);
     #define LEDPIN_OFF                 PORTB &= ~(1<<7);
-    #define BUZZERPIN_PINMODE          ;
-    #define BUZZERPIN_ON               ;
-    #define BUZZERPIN_OFF              ;
+    #define BUZZERPIN_PINMODE          pinMode (8, OUTPUT);
+    #define BUZZERPIN_ON               PINB |= (1<<0);
+    #define BUZZERPIN_OFF              PINB &= ~(1<<0);
     #define STABLEPIN_PINMODE          ;
     #define STABLEPIN_ON               ;
     #define STABLEPIN_OFF              ;
