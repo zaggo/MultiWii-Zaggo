@@ -33,20 +33,6 @@
 //enable internal I2C pull ups
 //#define INTERNAL_I2C_PULLUPS
 
-// enable automatic ESC calibration code
-#define CALIBRATE_ESCS
-
-// BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
-// Use the copter's LEDs (usually LED strips attached to the arms) as status display
-// This option currently supports TRI, QUADX and QUADP configurations. 
-// Connect 3 (TRI) or 4 (QUADX/QUADP) LED (Strips) with help of a driver chip (e.g. UDN2981A) to the
-// flight controller.
-// For TRI configuration, use pins 31 (left), 32 (right) and 33 (back). Buzzer pin stays pin 30.
-// For QUADP configuration, use pins 30 (front), 31 (right), 32 (back) and 33 (left). Buzzer pin is re-assigned to digital pin 8
-// For QUADX configuration, ise üins 30 (left front), 31 (right front), 32 (right back), 33 (left back). Buzzer pin is re-assigned to digital pin 8
-// See def.h for more details.
-#define BLINKEN
-
 //****** advanced users settings   *************
 
 /* This option should be uncommented if ACC Z is accurate enough when motors are running*/
@@ -358,7 +344,28 @@
 /* to log values like max loop time and others to come */
 /* logging values are visible via LCD config */
 //#define LOG_VALUES
- 
+
+
+
+// enable automatic ESC calibration code
+#define CALIBRATE_ESCS
+
+// BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
+// Use the copter's LEDs (usually LED strips attached to the arms) as status display
+// This option currently supports TRI, QUADX and QUADP configurations. 
+// Connect 3 (TRI) or 4 (QUADX/QUADP) LED (Strips) with help of a driver chip (e.g. UDN2981A) to the
+// flight controller.
+// For TRI configuration, use pins 31 (left), 32 (right) and 33 (back). Buzzer pin stays pin 30.
+// For QUADP configuration, use pins 30 (front), 31 (right), 32 (back) and 33 (left). Buzzer pin is re-assigned to digital pin 8
+// For QUADX configuration, use pins 30 (left front), 31 (right front), 32 (right back), 33 (left back). Buzzer pin is re-assigned to digital pin 8
+// See def.h for more details.
+#define BLINKEN
+
+// Define the following, when using ULN2003 or ULD2803 Darlington Arrays
+#define BLINKEN_INVERSELOGIC
+
+
+
 //****** end of advanced users settings *************
 
 //if you want to change to orientation of individual sensor
