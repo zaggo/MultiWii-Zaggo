@@ -34,7 +34,7 @@
 //#define INTERNAL_I2C_PULLUPS
 
 //****** advanced users settings   *************
-/* I2C DERobot LED RING communication */
+/* I2C DFRobot LED RING communication */
 //#define LED_RING
 
 /* This option should be uncommented if ACC Z is accurate enough when motors are running*/
@@ -62,11 +62,10 @@
    note: only the RX PIN is used, the GPS is not configured by multiwii
    the GPS must be configured to output NMEA sentences (which is generally the default conf for most GPS devices)
 */
-#define GPS
-#define GPS_SERIAL Serial2 // should be Serial2 for flyduino v2
-//#define GPS_BAUD   4800
-//#define GPS_BAUD   9600
+//#define GPS
+#define GPS_SERIAL 2 // should be 2 for flyduino v2. It's the serial port number on arduino MEGA
 #define GPS_BAUD   115200
+//#define GPS_BAUD   9600
 
 /* Pseudo-derivative conrtroller for level mode (experimental)
    Additional information: http://www.multiwii.com/forum/viewtopic.php?f=8&t=503 */
@@ -93,7 +92,7 @@
 //#define ALLINONE        // full FC board or standalone 9DOF+baro board from CSG_EU
 //#define AEROQUADSHIELDv2
 //#define ATAVRSBIN1      // Atmel 9DOF (Contribution by EOSBandi). requires 3.3V power.
-#define SIRIUS          // Sirius Navigator IMU                                             <- confirmed by Alex
+//#define SIRIUS          // Sirius Navigator IMU                                             <- confirmed by Alex
 //#define SIRIUS600       // Sirius Navigator IMU  using the WMP for the gyro
 //#define MINIWII         // Jussi's MiniWii Flight Controller
 //#define CITRUSv1_0      // CITRUSv1 from qcrc.ca
