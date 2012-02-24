@@ -398,7 +398,7 @@ void setup() {
   {
     writeAllMotors(MAXTHROTTLE);
     delay(3000);
-    writeAllMotors(900);
+    writeAllMotors(1000);
     delay(3000);
   }
   #endif

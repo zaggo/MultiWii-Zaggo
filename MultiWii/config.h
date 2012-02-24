@@ -4,16 +4,16 @@
 
 /* Set the minimum throttle command sent to the ESC (Electronic Speed Controller)
    This is the minimum value that allow motors to run at a idle speed  */
-//#define MINTHROTTLE 1300 // for Turnigy Plush ESCs 10A
+#define MINTHROTTLE 1300 // for Turnigy Plush ESCs 10A
 //#define MINTHROTTLE 1120 // for Super Simple ESCs 10A
 //#define MINTHROTTLE 1220
-#define MINTHROTTLE 1150 
+//#define MINTHROTTLE 1150 
 
 /* The type of multicopter */
 //#define GIMBAL
 //#define BI
-//#define TRI
-#define QUADP
+#define TRI
+//#define QUADP
 //#define QUADX
 //#define Y4
 //#define Y6
@@ -24,8 +24,8 @@
 //#define OCTOFLATX
 //#define FLYING_WING //experimental
 
-#define YAW_DIRECTION 1 // if you want to reverse the yaw correction direction
-//#define YAW_DIRECTION -1
+//#define YAW_DIRECTION 1 // if you want to reverse the yaw correction direction
+#define YAW_DIRECTION -1
 
 //#define I2C_SPEED 100000L     //100kHz normal mode, this value must be used for a genuine WMP
 #define I2C_SPEED 400000L   //400kHz fast mode, it works only with some WMP clones
