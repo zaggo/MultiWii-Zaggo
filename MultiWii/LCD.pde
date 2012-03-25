@@ -2,7 +2,10 @@
 // LCD & display & monitoring
 // ************************************************************************************************************
 #if defined(LCD_CONF) || defined(LCD_TELEMETRY)
-static char line1[17],line2[17];
+static char line1[LCD_CPL+1],line2[LCD_CPL+1];
+#if LCD_CPL==4
+static char line3[LCD_CPL+1],line4[LCD_CPL+1];
+#endif
 
 char digit10000(uint16_t v) {return '0' + v / 10000; }
 char digit1000(uint16_t v)  { return '0' + v / 1000 - (v/10000) * 10; }
@@ -129,6 +132,8 @@ void LCDprint(uint8_t i) {
       }
       LCDPIN_ON //switch ON digital PIN 0
       delayMicroseconds(BITDELAY);
+  #elif defined(LCD_SPARKFUN_SERLCD)
+      SerialWrite(LCD_SPARKFUN_SERLCD_PORT,i);
   #elif defined(LCD_TEXTSTAR) || defined(LCD_VT100)
       SerialWrite(0, i );
   #elif defined(LCD_ETPP)
@@ -148,6 +153,8 @@ void LCDcrlf() {
 void LCDclear() {
    #if defined(LCD_SERIAL3W)
      LCDprint(0xFE);LCDprint(0x01);delay(10);LCDprint(0xFE);LCDprint(0x02);delay(10); // clear screen, cursor line 1, pos 0 for serial LCD Sparkfun - contrib by flyman777
+   #elif defined(LCD_SPARKFUN_SERLCD)
+   LCDprint(0xFE);LCDprint(0x01);delay(10); // clear screen
    #elif defined(LCD_TEXTSTAR)
      LCDprint(0x0c);
    #elif defined(LCD_VT100)
@@ -164,8 +171,15 @@ void LCDclear() {
 }
 
 void LCDsetLine(byte line) {  // Line = 1 or 2 - vt100 has lines 1-99
-  #if defined(LCD_SERIAL3W)
-    if (line==1) {LCDprint(0xFE);LCDprint(128);} else {LCDprint(0xFE);LCDprint(192);}
+   #if defined(LCD_SERIAL3W) ||  defined(LCD_SPARKFUN_SERLCD)
+     LCDprint(0xFE);
+     switch(line)
+     {
+       case 2: LCDprint(0x80+64); break;
+       case 3: if(LCD_LINES>=3) { LCDprint(0x80+LCD_CPL); break; } // else fall through to default case
+       case 4: if(LCD_LINES>=4) { LCDprint(0x80+64+LCD_CPL); break; } // else fall through to default case
+       default: LCDprint(0x80);
+     }
   #elif defined(LCD_TEXTSTAR)
     LCDcrlf(); LCDprint(0xfe);LCDprint('L');LCDprint(line);
   #elif defined(LCD_VT100)
@@ -188,6 +202,13 @@ void initLCD() {
     SerialEnd(0);
     //init LCD
     PINMODE_LCD; //TX PIN for LCD = Arduino RX PIN (more convenient to connect a servo plug on arduino pro mini)
+  #elif defined(LCD_SPARKFUN_SERLCD)
+    if(LCD_SPARKFUN_SERLCD_PORT==0)
+      SerialEnd(0);
+      SerialOpen(LCD_SPARKFUN_SERLCD_PORT, LCD_SPARKFUN_SERLCD_BAUD);
+      LCDprint(0x7c);
+      LCDprint(0x80); // LED Bcklight off
+      delay(100);
   #elif defined(LCD_TEXTSTAR)
     // Cat's Whisker Technologies 'TextStar' Module CW-LCD-02
     // http://cats-whisker.com/resources/documents/cw-lcd-02_datasheet.pdf
@@ -539,8 +560,14 @@ void configurationLoop() {
   uint8_t LCD=1;
   uint8_t refreshLCD = 1;
   uint8_t key = 0;
+  uint8_t action = 0;
+  uint8_t oneShotAction = 0;
+  lcd_param_def_t* deft;
+#if !defined(LCD_SPARKFUN_SERLCD) || LCD_SPARKFUN_SERLCD_PORT==0
   initLCD(); 
+#endif
   p = 0;
+  delay(1000);
   while (LCD == 1) {
     if (refreshLCD) {
       blinkLED(10,20,1);
@@ -562,24 +589,58 @@ void configurationLoop() {
       delay(1000); 
       if (key == LCD_MENU_NEXT) key=LCD_VALUE_UP; else key = LCD_MENU_NEXT;
     #endif
-    for (i = ROLL; i < THROTTLE; i++) {uint16_t Tmp = readRawRC(i); lcdStickState[i] = (Tmp < MINCHECK) | ((Tmp > MAXCHECK) << 1);};
-    if (IsLow(YAW) && IsHigh(PITCH)) LCD = 0;          // save and exit
-    else if (IsHigh(YAW) && IsHigh(PITCH)) LCD = 2;    // exit without save: eeprom has only 100.000 write cycles
-    else if (key == LCD_MENU_NEXT || (IsLow(PITCH))) { //switch config param with pitch
-      refreshLCD = 1; p++; if (p>PARAMMAX) p = 0;
-    } else if (key == LCD_MENU_PREV || (IsHigh(PITCH))) {
-      refreshLCD = 1; p--; if (p == 0xFF) p = PARAMMAX;
-    } else if (key == LCD_VALUE_DOWN || (IsLow(ROLL))) { //+ or - param with low and high roll
-      refreshLCD = 1;
-      lcd_param_def_t* deft = (lcd_param_def_t*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 2]));
-      deft->type->inc((void*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 1])), -deft->increment);
-      if (p == 0) P8[PITCH] = P8[ROLL];
-    } else if (key == LCD_VALUE_UP || (IsHigh(ROLL))) {
-      refreshLCD = 1; 
-      lcd_param_def_t* deft = (lcd_param_def_t*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 2]));
-      deft->type->inc((void*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 1])), +deft->increment);
-      if (p == 0) P8[PITCH] = P8[ROLL];
+
+    for (i = ROLL; i < THROTTLE; i++) {
+      uint16_t Tmp = readRawRC(i); 
+      lcdStickState[i] = (Tmp < MINCHECK) | ((Tmp > MAXCHECK) << 1); 
     }
+    
+    if (IsLow(YAW) && IsHigh(PITCH)) action=1;          // save and exit
+    else if (IsHigh(YAW) && IsHigh(PITCH)) action=2;    // exit without save: eeprom has only 100.000 write cycles
+    else if (key == LCD_MENU_NEXT || (!IsHigh(YAW) && !IsLow(YAW) && IsLow(PITCH))) oneShotAction=3; //switch config param with pitch
+    else if (key == LCD_MENU_PREV || (!IsHigh(YAW) && !IsLow(YAW) && IsHigh(PITCH))) oneShotAction=4;
+    else if (key == LCD_VALUE_DOWN || (!IsHigh(YAW) && !IsLow(YAW) && IsLow(ROLL))) action=5; //+ or - param with low and high roll (immeediate action & autorepeat)
+    else if (key == LCD_VALUE_UP || (!IsHigh(YAW) && !IsLow(YAW) && IsHigh(ROLL))) action=6;
+    else {
+      action=oneShotAction;
+      oneShotAction=0;
+    }
+
+    switch(action)
+    {
+      case 1:  // save and exit
+        LCD = 0;
+        break;
+      case 2:  // exit without save: eeprom has only 100.000 write cycles
+        LCD = 2;
+        break;
+      case 3:  //switch config param with pitch
+      refreshLCD = 1;
+        p++; 
+        if (p>PARAMMAX) p = 0;
+        break;
+      case 4:
+        refreshLCD = 1; 
+        p--; 
+        if (p == 0xFF) p = PARAMMAX;
+        break;
+      case 5:  //+ or - param with low and high roll
+        refreshLCD = 1;
+        deft = (lcd_param_def_t*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 2]));
+      deft->type->inc((void*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 1])), -deft->increment);
+        if (p == 0) 
+          P8[PITCH] = P8[ROLL];
+        break;
+      case 6:
+      refreshLCD = 1; 
+        deft = (lcd_param_def_t*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 2]));
+      deft->type->inc((void*)pgm_read_word(&(lcd_param_ptr_table[(p * 3) + 1])), +deft->increment);
+        if (p == 0)
+          P8[PITCH] = P8[ROLL];
+        break;
+    }
+    action=0;
+    
   } // while (LCD == 1)
   blinkLED(20,30,1);
   
@@ -603,6 +664,16 @@ void configurationLoop() {
   #if defined(LCD_SERIAL3W)
     SerialOpen(0,115200);
   #endif
+  #if defined(LCD_SPARKFUN_SERLCD)
+    #ifndef LCD_TELEMETRY
+      delay(2000); // wait for two seconds then clear screen
+      LCDclear();
+    #endif
+    if(LCD_SPARKFUN_SERLCD_PORT==0) {
+       SerialEnd(LCD_SPARKFUN_SERLCD_PORT);
+       SerialOpen(0, 115200);
+    }
+  #endif
   #ifdef LCD_TELEMETRY
     delay(1500); // keep exit message visible for one and one half seconds even if (auto)telemetry continues writing in main loop
   #endif
@@ -620,6 +691,8 @@ void LCDbar(uint8_t n,uint8_t v) {
   else if (v < 0) v = 0;
   #if defined(LCD_SERIAL3W)
     for (uint8_t i=0; i< n; i++) LCDprint((i<n*v/100 ? '=' : '.'));
+  #elif defined(LCD_SPARKFUN_SERLCD)
+     for (uint8_t i=0; i< n; i++) LCDprint((i<n*v/100 ? '=' : '.'));
   #elif defined(LCD_TEXTSTAR)
     LCDprint(0xFE);LCDprint('b');LCDprint(n);LCDprint(v);
   #elif defined(LCD_VT100)
@@ -705,7 +778,7 @@ void output_VmAbars() {
           //     intPowerMeterSum = (pMeter[PMOTOR_SUM]/PLEVELDIV);
           //   pAlarm = (uint32_t) powerTrigger1 * (uint32_t) PLEVELSCALE * (uint32_t) PLEVELDIV; // need to cast before multiplying
           if (powerTrigger1)
-                  LCDbar(8, (intPowerMeterSum/(uint16_t)powerTrigger1) *2 ); // bar graph powermeter (scale intPowerMeterSum/powerTrigger1 with *100/PLEVELSCALE)
+		  LCDbar(LCD_CPL, (intPowerMeterSum/(uint16_t)powerTrigger1) *2 ); // bar graph powermeter (scale intPowerMeterSum/powerTrigger1 with *100/PLEVELSCALE)
          #endif
 }
 void fill_line1_cycle() {

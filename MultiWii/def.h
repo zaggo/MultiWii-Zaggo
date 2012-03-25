@@ -771,22 +771,38 @@
 	#error "to use Blinken, you must also define and configure MEGA"
   #endif
   
-  #if defined(TRI)
-    // un-/redef the default pin defines
-    #define LEDPIN_PINMODE             pinMode (13, OUTPUT);
-    #define LEDPIN_TOGGLE              PINB  |= (1<<7);
-    #define LEDPIN_ON                  PORTB |= (1<<7);
-    #define LEDPIN_OFF                 PORTB &= ~(1<<7);
-    #define BUZZERPIN_PINMODE          pinMode (30, OUTPUT);
-    #define BUZZERPIN_ON               PORTC |= (1<<7);
-    #define BUZZERPIN_OFF              PORTC &= ~(1<<7);
-    #define STABLEPIN_PINMODE          ;
-    #define STABLEPIN_ON               ;
-    #define STABLEPIN_OFF              ;
-    #define DIGITAL_CAM_PINMODE        pinMode(46,OUTPUT); // 46
-    #define DIGITAL_CAM_HIGH           PORTL |= 1<<3;
-    #define DIGITAL_CAM_LOW            PORTL &= ~(1<<3);
+  // un-/redef the default pin defines
+  #undef LEDPIN_PINMODE
+  #undef LEDPIN_TOGGLE
+  #undef LEDPIN_ON
+  #undef LEDPIN_OFF
+  #define LEDPIN_PINMODE             pinMode (13, OUTPUT);
+  #define LEDPIN_TOGGLE              PINB  |= (1<<7);
+  #define LEDPIN_ON                  PORTB |= (1<<7);
+  #define LEDPIN_OFF                 PORTB &= ~(1<<7);
 
+  #undef BUZZERPIN_PINMODE
+  #undef BUZZERPIN_ON
+  #undef BUZZERPIN_OFF
+  #define BUZZERPIN_PINMODE          pinMode (8, OUTPUT);
+  #define BUZZERPIN_ON               PORTH |= (1<<5);
+  #define BUZZERPIN_OFF              PORTH &= ~(1<<5);
+  
+  #undef STABLEPIN_PINMODE
+  #undef STABLEPIN_ON
+  #undef STABLEPIN_OFF
+  #define STABLEPIN_PINMODE          ;
+  #define STABLEPIN_ON               ;
+  #define STABLEPIN_OFF              ;
+
+  #undef DIGITAL_CAM_PINMODE
+  #undef DIGITAL_CAM_HIGH
+  #undef DIGITAL_CAM_LOW
+  #define DIGITAL_CAM_PINMODE        pinMode(46,OUTPUT); // 46
+  #define DIGITAL_CAM_HIGH           PORTL |= 1<<3;
+  #define DIGITAL_CAM_LOW            PORTL &= ~(1<<3);
+
+  #if defined(TRI)
     // Blinken Pins
     #define BLINKEN_PINMODE        pinMode (31, OUTPUT);pinMode (32, OUTPUT);pinMode(33,OUTPUT);
     #define BLINKEN1_ON            PORTC |= 1<<6;  
@@ -806,21 +822,6 @@
     #define BLINKEN_ALL_BUT_4      ;
     #define BLINKEN_COUNT          3
   #elif (defined(QUADP) || defined(QUADX))   
-    // un-/redef the default pin defines
-    #define LEDPIN_PINMODE             pinMode (13, OUTPUT);
-    #define LEDPIN_TOGGLE              PINB  |= (1<<7);
-    #define LEDPIN_ON                  PORTB |= (1<<7);
-    #define LEDPIN_OFF                 PORTB &= ~(1<<7);
-    #define BUZZERPIN_PINMODE          pinMode (8, OUTPUT);
-    #define BUZZERPIN_ON               PINB |= (1<<0);
-    #define BUZZERPIN_OFF              PINB &= ~(1<<0);
-    #define STABLEPIN_PINMODE          ;
-    #define STABLEPIN_ON               ;
-    #define STABLEPIN_OFF              ;
-    #define DIGITAL_CAM_PINMODE        pinMode(46,OUTPUT); // 46
-    #define DIGITAL_CAM_HIGH           PORTL |= 1<<3;
-    #define DIGITAL_CAM_LOW            PORTL &= ~(1<<3);
-
     // Blinken Pins
     #define BLINKEN_PINMODE        pinMode (30, OUTPUT); pinMode (31, OUTPUT);pinMode (32, OUTPUT);pinMode(33,OUTPUT);
     #define BLINKEN1_ON            PORTC |= 1<<7;  
@@ -853,10 +854,13 @@
 /* Error Checking Section */
 /**************************/
 
-#if (defined(LCD_CONF) || defined(LCD_TELEMETRY)) && !(defined(LCD_SERIAL3W) || defined(LCD_TEXTSTAR) || defined(LCD_VT100) || defined(LCD_ETPP) || defined(LCD_LCD03))
+#if (defined(LCD_CONF) || defined(LCD_TELEMETRY)) && !(defined(LCD_SERIAL3W) || defined(LCD_SPARKFUN_SERLCD) || defined(LCD_TEXTSTAR) || defined(LCD_VT100) || defined(LCD_ETPP) || defined(LCD_LCD03))
   #error "LCD_CONF or LCD_TELEMETRY defined, and choice of LCD not defined.  Uncomment one of LCD_SERIAL3W or LCD_TEXTSTAR or LCD_VT100 or LCD_ETPP or LCD_LCD03"
 #endif
 
+#if (defined(LCD_CONF) || defined(LCD_TELEMETRY)) && !(defined(LCD_CPL) && defined(LCD_LINES))
+  #error "LCD_CONF or LCD_TELEMETRY defined, and LCD_CPL (chars per line) or LCD_LINES (lines on display) not defined!"
+#endif
 
 #if defined(POWERMETER) && !(defined(VBAT))
   	#error "to use powermeter, you must also define and configure VBAT"

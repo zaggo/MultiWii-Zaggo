@@ -25,8 +25,8 @@
 //#define FLYING_WING
 //#define VTAIL4
 
-#define YAW_DIRECTION 1 // if you want to reverse the yaw correction direction
-//#define YAW_DIRECTION -1
+//#define YAW_DIRECTION 1 // if you want to reverse the yaw correction direction
+#define YAW_DIRECTION -1
 
 //#define I2C_SPEED 100000L     //100kHz normal mode, this value must be used for a genuine WMP
 #define I2C_SPEED 400000L   //400kHz fast mode, it works only with some WMP clones
@@ -67,7 +67,7 @@
    the GPS must be configured to output NMEA sentences (which is generally the default conf for most GPS devices)
    uncomment the first line to select the GPS serial port of the arduino */
 #define GPS_SERIAL 2 // should be 2 for flyduino v2. It's the serial port number on arduino MEGA
-#define GPS_BAUD   115200
+#define GPS_BAUD   38400
 
 /* I2C GPS device made with an independant arduino + GPS device
    including some navigation functions
@@ -290,19 +290,30 @@
    comment this line only if you don't plan to used a LCD */
 #define LCD_CONF
 /* to include setting the aux switches for AUX1 and AUX2 via LCD */
-//#define LCD_CONF_AUX_12
+#define LCD_CONF_AUX_12
 /* to include setting the aux switches for AUX1, AUX2, AUX3 and AUX4 via LCD */
-//#define LCD_CONF_AUX_1234
+#define LCD_CONF_AUX_1234
 
+/* Chars per line */
+//#define LCD_CPL   16  
+#define LCD_CPL   20
+
+/* Lines on display */
+//#define LCD_LINES 2
+#define LCD_LINES 4
 
 /* choice of LCD attached for configuration and telemetry, see notes below */
-#define LCD_SERIAL3W    // Alex' initial variant with 3 wires, using rx-pin for transmission @9600 baud fixed
+//#define LCD_SERIAL3W    // Alex' initial variant with 3 wires, using rx-pin for transmission @9600 baud fixed
 /* serial (wired or wireless via BT etc.) */
 //#define LCD_TEXTSTAR    // Cat's Whisker LCD_TEXTSTAR Module CW-LCD-02 (Which has 4 input keys for selecting menus)
 //#define LCD_VT100               // vt100 compatible terminal emulation (blueterm, putty, etc.)
 /* i2c devices */
 //#define LCD_ETPP        // Eagle Tree Power Panel LCD, which is i2c (not serial)
 //#define LCD_LCD03       // LCD03, which is i2c
+/* Sparkfun serial enabled LCD wirh SerLCD v2.5*/
+#define LCD_SPARKFUN_SERLCD
+#define LCD_SPARKFUN_SERLCD_PORT  3
+#define LCD_SPARKFUN_SERLCD_BAUD  38400
 
 /* style of display - autodetected by LCD_ setting - only activate to overwrite defaults */
 //#define DISPLAY_2LINES
@@ -439,7 +450,7 @@
 /*      4. configure, compile, upload, set alarm value in GUI or LCD */
 /*      3. enjoy true readings of mAh consumed */
 /* set POWERMETER to "soft" (1) or "hard" (2) depending on sensor you want to utilize */
-//#define POWERMETER_SOFT
+#define POWERMETER_SOFT
 //#define POWERMETER_HARD
 /* the sum of all powermeters ranges from [0:60000 e4] theoretically. */
 /* the alarm level from eeprom is out of [0:255], so we multipy alarm level with PLEVELSCALE and with 1e4 before comparing */
@@ -491,7 +502,7 @@
 //#define LCD_TELEMETRY_DEBUG 6  //This form stays on the screen specified.
 
 // enable automatic ESC calibration code
-#define CALIBRATE_ESCS
+//ööpßß#define CALIBRATE_ESCS
 
 // BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
 // Use the copter's LEDs (usually LED strips attached to the arms) as status display
@@ -502,10 +513,10 @@
 // For QUADP configuration, use pins 30 (front), 31 (right), 32 (back) and 33 (left). Buzzer pin is re-assigned to digital pin 8
 // For QUADX configuration, use pins 30 (left front), 31 (right front), 32 (right back), 33 (left back). Buzzer pin is re-assigned to digital pin 8
 // See def.h for more details.
-#define BLINKEN
+//#define BLINKEN
 
 // Define the following, when using ULN2003 or ULD2803 Darlington Arrays
-#define BLINKEN_INVERSELOGIC
+//#define BLINKEN_INVERSELOGIC
 
 //****** end of advanced users settings ***********************************
 /* ===================================================================== */
@@ -521,7 +532,7 @@
 /* example: with cycle time of approx 3ms, do action every 6*3ms=18ms */
 /* value must be [1; 65535] */
 #define LCD_TELEMETRY_FREQ 23       // to send telemetry data over serial 23 <=> 60ms <=> 16Hz (only sending interlaced, so 8Hz update rate)
-#define LCD_TELEMETRY_AUTO_FREQ 667 // to step to next telemetry page 667 <=> 2s
+#define LCD_TELEMETRY_AUTO_FREQ 1334 // to step to next telemetry page 667 <=> 2s
 #define PSENSORFREQ 6               // to read hardware powermeter sensor 6 <=> 18ms
 #define VBATFREQ PSENSORFREQ        // to read battery voltage - keep equal to PSENSORFREQ unless you know what you are doing
 /*************************************************************************************************/

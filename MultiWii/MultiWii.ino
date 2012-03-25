@@ -423,6 +423,8 @@ void setup() {
     initLCD();
   #elif defined(LCD_LCD03)
     initLCD();
+  #elif defined(LCD_SPARKFUN_SERLCD) && LCD_SPARKFUN_SERLCD_PORT>0
+    initLCD();
   #endif
   #ifdef LCD_TELEMETRY_DEBUG
     telemetry_auto = 1;
@@ -748,7 +750,10 @@ void loop () {
   #if GPS
     uint16_t GPS_dist;
     int16_t  GPS_dir;
-
+   #if defined(BLINKEN)
+    if(GPSModeHold || GPSModeHome)
+      blinkenState( GPS_fix?kBlinkenGPSActive:kBlinkenGPSNoFix ); 
+   #endif
     if ( (GPSModeHome == 0 && GPSModeHold == 0) || (GPS_fix_home == 0) ) {
       GPS_angle[ROLL]  = 0;
       GPS_angle[PITCH] = 0;
