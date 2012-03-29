@@ -502,7 +502,7 @@
 //#define LCD_TELEMETRY_DEBUG 6  //This form stays on the screen specified.
 
 // enable automatic ESC calibration code
-//ööpßß#define CALIBRATE_ESCS
+//#define CALIBRATE_ESCS
 
 // BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
 // Use the copter's LEDs (usually LED strips attached to the arms) as status display
@@ -513,7 +513,7 @@
 // For QUADP configuration, use pins 30 (front), 31 (right), 32 (back) and 33 (left). Buzzer pin is re-assigned to digital pin 8
 // For QUADX configuration, use pins 30 (left front), 31 (right front), 32 (right back), 33 (left back). Buzzer pin is re-assigned to digital pin 8
 // See def.h for more details.
-//#define BLINKEN
+#define BLINKEN
 
 // Define the following, when using ULN2003 or ULD2803 Darlington Arrays
 //#define BLINKEN_INVERSELOGIC
