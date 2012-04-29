@@ -63,7 +63,7 @@ Slider debug1Slider,debug2Slider,debug3Slider,debug4Slider;
 
 Slider scaleSlider;
 
-Button buttonREAD,buttonWRITE,buttonCALIBRATE_ACC,buttonCALIBRATE_MAG,buttonSTART,buttonSTOP;
+Button buttonREAD,buttonWRITE,buttonCALIBRATE_ACC,buttonCALIBRATE_MAG, buttonCALIBRATE_ESC, buttonSTART,buttonSTOP;
 
 Button buttonNunchuk,buttonI2cAcc,buttonI2cBaro,buttonI2cMagneto,buttonGPS;
 Button buttonI2cAccActive,buttonI2cBaroActive,buttonI2cMagnetoActive,buttonGPSActive;
@@ -252,10 +252,11 @@ void setup() {
     hideLabel(checkbox2[i].addItem(i + "4_",4));hideLabel(checkbox2[i].addItem(i + "5_",5));hideLabel(checkbox2[i].addItem(i + "6_",6));
   }
   
-  buttonREAD =      controlP5.addButton("READ",1,xParam+5,yParam+260,60,16);buttonREAD.setColorBackground(red_);
+  buttonREAD =      controlP5.addButton("READ",1,xParam+5,yParam+260,45,16);buttonREAD.setColorBackground(red_);
   buttonWRITE =     controlP5.addButton("WRITE",1,xParam+290,yParam+260,60,16);buttonWRITE.setColorBackground(red_);
   buttonCALIBRATE_ACC = controlP5.addButton("CALIB_ACC",1,xParam+210,yParam+260,70,16);buttonCALIBRATE_ACC.setColorBackground(red_);
-  buttonCALIBRATE_MAG = controlP5.addButton("CALIB_MAG",1,xParam+130,yParam+260,70,16);buttonCALIBRATE_MAG.setColorBackground(red_);
+  buttonCALIBRATE_MAG = controlP5.addButton("CALIB_MAG",1,xParam+135,yParam+260,70,16);buttonCALIBRATE_MAG.setColorBackground(red_);
+  buttonCALIBRATE_ESC = controlP5.addButton("CALIB_ESC",1,xParam+60,yParam+260,70,16);buttonCALIBRATE_ESC.setColorBackground(red_);
 
   rcStickThrottleSlider = controlP5.addSlider("Throttle",900,2100,1500,xRC,yRC,10,100);rcStickThrottleSlider.setDecimalPrecision(0);
   rcStickPitchSlider =    controlP5.addSlider("Pitch",900,2100,1500,xRC+80,yRC,10,100);rcStickPitchSlider.setDecimalPrecision(0);
@@ -724,7 +725,7 @@ public void bSTART() {
   if(graphEnable == false) {return;}
   graph_on=1;
   readEnable = true;calibrateEnable = true;
-  buttonREAD.setColorBackground(green_); buttonCALIBRATE_ACC.setColorBackground(green_); buttonCALIBRATE_MAG.setColorBackground(green_);
+  buttonREAD.setColorBackground(green_); buttonCALIBRATE_ACC.setColorBackground(green_); buttonCALIBRATE_MAG.setColorBackground(green_); buttonCALIBRATE_ESC.setColorBackground(green_);
   g_serial.clear();
 }
 
@@ -812,6 +813,10 @@ public void CALIB_ACC() {
 public void CALIB_MAG() {
   if(calibrateEnable == false) {return;}
   g_serial.write('E'); // mag Sensor calibration request
+}
+public void CALIB_ESC() {
+  if(calibrateEnable == false) {return;}
+  g_serial.write('X'); // ESC calibration request
 }
 
 // initialize the serial port selected in the listBox

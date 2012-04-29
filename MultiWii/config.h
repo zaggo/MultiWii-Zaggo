@@ -4,8 +4,8 @@
 
 /* Set the minimum throttle command sent to the ESC (Electronic Speed Controller)
    This is the minimum value that allow motors to run at a idle speed  */
-#define MINTHROTTLE 1300 // for Turnigy Plush ESCs 10A
-//#define MINTHROTTLE 1120 // for Super Simple ESCs 10A
+//#define MINTHROTTLE 1300 // for Turnigy Plush ESCs 10A
+#define MINTHROTTLE 1120 // for Super Simple ESCs 10A
 //#define MINTHROTTLE 1220
 //#define MINTHROTTLE 1150 
 
@@ -242,6 +242,7 @@
        2) Available now: Comment out the Spektrum definition, upload, plug in PC, configure; uncomment the Spektrum definition, upload, plug in RX, and fly.  Repeat as required to configure. 
    (Contribution by Danal) */
 //#define SPEKTRUM 1024
+
 #define SPEKTRUM 2048
 
 
@@ -295,7 +296,7 @@
 #define LCD_CONF_AUX_1234
 
 /* Chars per line */
-//#define LCD_CPL   16  
+#define LCD_CPL   16  
 #define LCD_CPL   20
 
 /* Lines on display */
@@ -356,14 +357,14 @@
 /* Buttons toggle request for page on/off */
 /* The active page on the LCD does get updated automatically */
 /* Easy to use with Terminal application or display like LCD - if available uses the 4 preconfigured buttons  to send 'A', 'B', 'C', 'D' */
-//#define LCD_TELEMETRY
+#define LCD_TELEMETRY
 /* to enable automatic hopping between a choice of telemetry pages uncomment this. */
 /* This may be useful if your LCD has no buttons or the sending is broken */
 /* hopping is activated and deactivated in unarmed mode with throttle=low & roll=left & pitch=forward */
 /* set it to the sequence of telemetry pages you want to see */
 /* 2 line displays support pages 1-9 */
 /* multiline displays support pages 1-4 */
-//#define LCD_TELEMETRY_AUTO "123452679" // pages 1 to 7 in ascending order
+#define LCD_TELEMETRY_AUTO "123452679" // pages 1 to 7 in ascending order
 //#define LCD_TELEMETRY_AUTO  "212232425262729" // strong emphasis on page 2
 
 /* on telemetry page B (2) it gives a bar graph which shows how much voltage battery has left. Range from 0 to 12 Volt is not very informative */
@@ -450,7 +451,7 @@
 /*      4. configure, compile, upload, set alarm value in GUI or LCD */
 /*      3. enjoy true readings of mAh consumed */
 /* set POWERMETER to "soft" (1) or "hard" (2) depending on sensor you want to utilize */
-#define POWERMETER_SOFT
+//#define POWERMETER_SOFT
 //#define POWERMETER_HARD
 /* the sum of all powermeters ranges from [0:60000 e4] theoretically. */
 /* the alarm level from eeprom is out of [0:255], so we multipy alarm level with PLEVELSCALE and with 1e4 before comparing */
@@ -500,9 +501,6 @@
 /* Use this to trigger telemetry without a TX - only for debugging - do NOT fly with this activated */
 //#define LCD_TELEMETRY_DEBUG  //This form rolls between all screens, LCD_TELEMETRY_AUTO must also be defined.
 //#define LCD_TELEMETRY_DEBUG 6  //This form stays on the screen specified.
-
-// enable automatic ESC calibration code
-//#define CALIBRATE_ESCS
 
 // BLINKEN - (Contribution by Zaggo. Idea by Captain Ixi and Zaggo)
 // Use the copter's LEDs (usually LED strips attached to the arms) as status display

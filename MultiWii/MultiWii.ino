@@ -118,7 +118,7 @@ static uint8_t telemetry_auto = 0;
 #define MAXCHECK 1900
 
 volatile int16_t failsafeCnt = 0;
-//static int16_t failsafeEvents = 0;
+static int16_t failsafeEvents = 0;
 static int16_t rcData[8];    // interval [1000;2000]
 static int16_t rcCommand[4]; // interval [1000;2000] for THROTTLE and [-500;+500] for ROLL/PITCH/YAW 
 static uint8_t rcRate8;
@@ -437,23 +437,6 @@ void setup() {
   #if defined(BLINKEN)
     BLINKEN_PINMODE
   #endif
-
-  #ifdef CALIBRATE_ESCS
-  // Get current stick positions (loop to give code a chance to get running)
-  for(int i=0; i<10;i++) {
-    computeRC();
-    delay(20);
-}
-
-  // If throttle is in max position, start ESC calibration sequence
-  if(rcData[THROTTLE]>MAXCHECK)
-  {
-    writeAllMotors(MAXTHROTTLE);
-    delay(3000);
-    writeAllMotors(1000);
-    delay(3000);
-  }
-  #endif
 }
 
 // ******** Main Loop *********
@@ -506,7 +489,7 @@ void loop () {
       failsafeCnt++;
     #endif
     // end of failsave routine - next change is made with RcOptions setting
-    
+        
     if (rcData[THROTTLE] < MINCHECK) {
       errorGyroI[ROLL] = 0; errorGyroI[PITCH] = 0; errorGyroI[YAW] = 0;
       errorAngleI[ROLL] = 0; errorAngleI[PITCH] = 0;

@@ -139,6 +139,12 @@ void serialCom() {
     case 'E': //GUI to arduino MAG calibration request
       calibratingM=1;
       break;
+     case 'X'://GUI to arduino ESC calibration request
+        writeAllMotors(2000);
+        delay(8000);
+        writeAllMotors(1000);
+        delay(3000);
+      break;
     }
   }
 }
